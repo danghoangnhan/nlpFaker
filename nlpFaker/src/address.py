@@ -3,12 +3,11 @@ import pandas as pd
 
 class AddressGenerator:
     def __init__(self):
-        self.data = pd.read_csv('raw_data/address.csv', encoding='utf-16le')
+        self.data = pd.read_csv('nlpFaker/raw_data/address.csv', encoding='utf-16le')
         self.data[['all_types', 'addr_type', 'lane', 'alley', 'num', 'sub', 'floor', 'above_below', 'follow']] = self.data['Condition'].apply(self.parse_conditions).apply(pd.Series)
         
     
     def parse_conditions(self, conditions):
-        # Initialize default types
         all_types = False
         addr_type = ''
         if '單全' in conditions:
@@ -48,7 +47,6 @@ class AddressGenerator:
         if '以下' in conditions:
             above_below = 'l'
             conditions = conditions.replace('以下', '')
-        print(conditions)
         if '號' in conditions:
             parts = conditions.split('號')
             num = int(parts[0]) if len(parts) > 1 else 0
