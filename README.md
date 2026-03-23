@@ -17,6 +17,81 @@ A comprehensive fake data generator built specifically for **Taiwan (zh_TW)**. Z
 - **CLI included**: generate data from the command line
 - **Export**: JSON, CSV, SQL INSERT out of the box
 
+## Architecture
+
+```mermaid
+classDiagram
+    class BaseGenerator {
+        <<abstract>>
+        +_rng: Random
+        +_load_lines(filename) list~str~
+        +_load_weighted(filename) tuple
+        +_weighted_choice(items, weights) str
+        +generate()* str
+    }
+
+    class NlpFaker {
+        +_rng: Random
+        +name() str
+        +id_number() str
+        +mobile() str
+        +address() str
+        +email() str
+        +company() str
+        +landline() str
+        +date() str
+        +date_roc() str
+        +credit_card() str
+        +profile() dict
+        +batch(field, n) list
+    }
+
+    BaseGenerator <|-- NameGenerator
+    BaseGenerator <|-- IDNumberGenerator
+    BaseGenerator <|-- MobileGenerator
+    BaseGenerator <|-- AddressGenerator
+    BaseGenerator <|-- EmailGenerator
+    BaseGenerator <|-- CompanyGenerator
+    BaseGenerator <|-- LandlineGenerator
+    BaseGenerator <|-- DateTimeGenerator
+    BaseGenerator <|-- LicensePlateGenerator
+    BaseGenerator <|-- TaxIDGenerator
+    BaseGenerator <|-- InvoiceGenerator
+    BaseGenerator <|-- CreditCardGenerator
+    BaseGenerator <|-- BankAccountGenerator
+    BaseGenerator <|-- JobGenerator
+    BaseGenerator <|-- CredentialGenerator
+
+    NlpFaker --> NameGenerator : lazy init
+    NlpFaker --> IDNumberGenerator : lazy init
+    NlpFaker --> MobileGenerator : lazy init
+    NlpFaker --> AddressGenerator : lazy init
+    NlpFaker --> EmailGenerator : lazy init
+    NlpFaker --> CompanyGenerator : lazy init
+    NlpFaker --> LandlineGenerator : lazy init
+    NlpFaker --> DateTimeGenerator : lazy init
+    NlpFaker --> LicensePlateGenerator : lazy init
+    NlpFaker --> TaxIDGenerator : lazy init
+    NlpFaker --> InvoiceGenerator : lazy init
+    NlpFaker --> CreditCardGenerator : lazy init
+    NlpFaker --> BankAccountGenerator : lazy init
+    NlpFaker --> JobGenerator : lazy init
+    NlpFaker --> CredentialGenerator : lazy init
+
+    class Exporter {
+        +to_json(records, path)$
+        +to_csv(records, path)$
+        +to_sql(records, table, path)$
+    }
+
+    class Validators {
+        +validate_id_number(id_str)$ bool
+        +validate_tax_id(tax_str)$ bool
+        +validate_mobile(mobile_str)$ bool
+        +validate_credit_card(card_str)$ bool
+    }
+```
+
 ## Installation
 
 ```bash
@@ -165,3 +240,65 @@ uv run ruff check nlpFaker/
 ## License
 
 MIT
+
+---
+
+<details>
+<summary><h2>中文說明</h2></summary>
+
+### 簡介
+
+**nlpFaker** 是一個專為 **台灣 (zh_TW)** 設計的假資料產生器，零外部相依套件。
+
+提供 16 種產生器，涵蓋個人資料、聯絡方式、商業、金融、日期時間及車輛資訊，所有產生的身分證字號、統一編號、信用卡號碼皆通過真實的校驗演算法驗證。
+
+### 特色
+
+- **台灣專屬**：身分證字號（含檢查碼）、統一編號、民國年曆、09XX 手機號碼、真實縣市/區/路名地址
+- **16 種產生器**：姓名、身分證、手機、地址、電子郵件、公司名稱、市話、日期時間、車牌、郵遞區號、統一編號、統一發票、信用卡、銀行帳號、職稱、帳號密碼
+- **可重現**：支援 seed 參數，輸出結果可重現
+- **零相依**：僅使用 Python 標準函式庫
+- **內建 CLI**：可從命令列直接產生資料
+- **匯出功能**：支援 JSON、CSV、SQL INSERT
+
+### 快速開始
+
+```python
+from nlpFaker import NlpFaker
+
+fake = NlpFaker(seed=42)
+
+fake.name()           # 產生姓名，例如 "陳怡君"
+fake.id_number()      # 產生身分證字號（含有效檢查碼）
+fake.mobile()         # 產生手機號碼，例如 "0912345678"
+fake.address()        # 產生完整地址
+fake.company()        # 產生公司名稱
+fake.date_roc()       # 產生民國日期，例如 "民國113年03月15日"
+fake.tax_id()         # 產生統一編號（含有效檢查碼）
+fake.credit_card()    # 產生信用卡號碼（通過 Luhn 演算法）
+
+# 產生完整個人資料
+profile = fake.profile()
+
+# 批次產生
+names = fake.batch("name", 100)  # 產生 100 個姓名
+```
+
+### 驗證功能
+
+```python
+from nlpFaker import validate_id_number, validate_tax_id
+
+validate_id_number("A123456789")  # 驗證身分證字號檢查碼
+validate_tax_id("12345670")       # 驗證統一編號檢查碼
+```
+
+### 命令列工具
+
+```bash
+nlpfaker name -n 10              # 產生 10 個隨機姓名
+nlpfaker profile -n 5 -f json    # 產生 5 筆完整個人資料（JSON 格式）
+nlpfaker id_number -s 42         # 使用固定種子產生身分證字號
+```
+
+</details>
